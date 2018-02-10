@@ -133,20 +133,20 @@ func (s *HistogramSuite) TestHDRHistogramExportReturnsNewCopy(c *C) {
 	a.low = 1
 	a.high = 2
 	a.sigfigs = 3
-	a.h = hdrhistogram.New(0, 1, 2)
+	a.histo = hdrhistogram.New(0, 1, 2)
 
 	// Get a copy and modify the original
 	b := a.Export()
 	a.low = 11
 	a.high = 12
 	a.sigfigs = 4
-	a.h = nil
+	a.histo = nil
 
 	// Assert the copy has not been modified
 	c.Assert(b.low, Equals, int64(1))
 	c.Assert(b.high, Equals, int64(2))
 	c.Assert(b.sigfigs, Equals, 3)
-	c.Assert(b.h, NotNil)
+	c.Assert(b.histo, NotNil)
 }
 
 func (s *HistogramSuite) TestRollingHDRHistogramExportReturnsNewCopy(c *C) {

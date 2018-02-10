@@ -7,9 +7,9 @@ import (
 	"github.com/mailgun/timetools"
 )
 
-type rcOptSetter func(*RollingCounter) error
+type CounterOptSetter func(*RollingCounter) error
 
-func CounterClock(c timetools.TimeProvider) rcOptSetter {
+func CounterClock(c timetools.TimeProvider) CounterOptSetter {
 	return func(r *RollingCounter) error {
 		r.clock = c
 		return nil
@@ -29,7 +29,7 @@ type RollingCounter struct {
 // NewCounter creates a counter with fixed amount of buckets that are rotated every resolution period.
 // E.g. 10 buckets with 1 second means that every new second the bucket is refreshed, so it maintains 10 second rolling window.
 // By default creates a bucket with 10 buckets and 1 second resolution
-func NewCounter(buckets int, resolution time.Duration, options ...rcOptSetter) (*RollingCounter, error) {
+func NewCounter(buckets int, resolution time.Duration, options ...CounterOptSetter) (*RollingCounter, error) {
 	if buckets <= 0 {
 		return nil, fmt.Errorf("Buckets should be >= 0")
 	}

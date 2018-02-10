@@ -57,7 +57,7 @@ type Stream struct {
 }
 
 // New returns a new streamer middleware. New() function supports optional functional arguments
-func New(next http.Handler, setters ...optSetter) (*Stream, error) {
+func New(next http.Handler, setters ...OptSetter) (*Stream, error) {
 	strm := &Stream{
 		next: next,
 
@@ -73,7 +73,7 @@ func New(next http.Handler, setters ...optSetter) (*Stream, error) {
 	return strm, nil
 }
 
-type optSetter func(s *Stream) error
+type OptSetter func(s *Stream) error
 
 // Wrap sets the next handler to be called by stream handler.
 func (s *Stream) Wrap(next http.Handler) error {

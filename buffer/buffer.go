@@ -77,7 +77,7 @@ type Buffer struct {
 }
 
 // New returns a new buffer middleware. New() function supports optional functional arguments
-func New(next http.Handler, setters ...optSetter) (*Buffer, error) {
+func New(next http.Handler, setters ...OptSetter) (*Buffer, error) {
 	strm := &Buffer{
 		next: next,
 
@@ -99,7 +99,7 @@ func New(next http.Handler, setters ...optSetter) (*Buffer, error) {
 	return strm, nil
 }
 
-type optSetter func(s *Buffer) error
+type OptSetter func(s *Buffer) error
 
 // Retry provides a predicate that allows buffer middleware to replay the request
 // if it matches certain condition, e.g. returns special error code. Available functions are:
@@ -112,7 +112,7 @@ type optSetter func(s *Buffer) error
 //
 // `Attempts() <= 2 && ResponseCode() == 502`
 //
-func Retry(predicate string) optSetter {
+func Retry(predicate string) OptSetter {
 	return func(s *Buffer) error {
 		p, err := parseExpression(predicate)
 		if err != nil {
@@ -124,7 +124,7 @@ func Retry(predicate string) optSetter {
 }
 
 // ErrorHandler sets error handler of the server
-func ErrorHandler(h utils.ErrorHandler) optSetter {
+func ErrorHandler(h utils.ErrorHandler) OptSetter {
 	return func(s *Buffer) error {
 		s.errHandler = h
 		return nil
@@ -132,7 +132,7 @@ func ErrorHandler(h utils.ErrorHandler) optSetter {
 }
 
 // MaxRequestBodyBytes sets the maximum request body size in bytes
-func MaxRequestBodyBytes(m int64) optSetter {
+func MaxRequestBodyBytes(m int64) OptSetter {
 	return func(s *Buffer) error {
 		if m < 0 {
 			return fmt.Errorf("max bytes should be >= 0 got %d", m)
@@ -144,7 +144,7 @@ func MaxRequestBodyBytes(m int64) optSetter {
 
 // MaxRequestBody bytes sets the maximum request body to be stored in memory
 // buffer middleware will serialize the excess to disk.
-func MemRequestBodyBytes(m int64) optSetter {
+func MemRequestBodyBytes(m int64) OptSetter {
 	return func(s *Buffer) error {
 		if m < 0 {
 			return fmt.Errorf("mem bytes should be >= 0 got %d", m)
@@ -155,7 +155,7 @@ func MemRequestBodyBytes(m int64) optSetter {
 }
 
 // MaxResponseBodyBytes sets the maximum request body size in bytes
-func MaxResponseBodyBytes(m int64) optSetter {
+func MaxResponseBodyBytes(m int64) OptSetter {
 	return func(s *Buffer) error {
 		if m < 0 {
 			return fmt.Errorf("max bytes should be >= 0 got %d", m)
@@ -167,7 +167,7 @@ func MaxResponseBodyBytes(m int64) optSetter {
 
 // MemResponseBodyBytes sets the maximum request body to be stored in memory
 // buffer middleware will serialize the excess to disk.
-func MemResponseBodyBytes(m int64) optSetter {
+func MemResponseBodyBytes(m int64) OptSetter {
 	return func(s *Buffer) error {
 		if m < 0 {
 			return fmt.Errorf("mem bytes should be >= 0 got %d", m)
@@ -254,7 +254,7 @@ func (s *Buffer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 		s.next.ServeHTTP(b, outreq)
 		if b.hijacked {
-			log.Infof("vulcand/oxy/buffer: connection was hijacked downstream. Not taking any action in buffer.")
+			log.Debugf("vulcand/oxy/buffer: connection was hijacked downstream. Not taking any action in buffer.")
 			return
 		}
 
@@ -290,7 +290,7 @@ func (s *Buffer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		outreq = s.copyRequest(req, body, totalSize)
-		log.Infof("vulcand/oxy/buffer: retry Request(%v %v) attempt %v", req.Method, req.URL, attempt)
+		log.Debugf("vulcand/oxy/buffer: retry Request(%v %v) attempt %v", req.Method, req.URL, attempt)
 	}
 }
 

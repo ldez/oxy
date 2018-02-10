@@ -6,9 +6,9 @@ import (
 	"github.com/mailgun/timetools"
 )
 
-type ratioOptSetter func(r *RatioCounter) error
+type RatioOptSetter func(r *RatioCounter) error
 
-func RatioClock(clock timetools.TimeProvider) ratioOptSetter {
+func RatioClock(clock timetools.TimeProvider) RatioOptSetter {
 	return func(r *RatioCounter) error {
 		r.clock = clock
 		return nil
@@ -22,7 +22,7 @@ type RatioCounter struct {
 	b     *RollingCounter
 }
 
-func NewRatioCounter(buckets int, resolution time.Duration, options ...ratioOptSetter) (*RatioCounter, error) {
+func NewRatioCounter(buckets int, resolution time.Duration, options ...RatioOptSetter) (*RatioCounter, error) {
 	rc := &RatioCounter{}
 
 	for _, o := range options {

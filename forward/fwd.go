@@ -25,11 +25,11 @@ type ReqRewriter interface {
 	Rewrite(r *http.Request)
 }
 
-type optSetter func(f *Forwarder) error
+type OptSetter func(f *Forwarder) error
 
 // PassHostHeader specifies if a client's Host header field should
 // be delegated
-func PassHostHeader(b bool) optSetter {
+func PassHostHeader(b bool) OptSetter {
 	return func(f *Forwarder) error {
 		f.httpForwarder.passHost = b
 		return nil
@@ -38,7 +38,7 @@ func PassHostHeader(b bool) optSetter {
 
 // RoundTripper sets a new http.RoundTripper
 // Forwarder will use http.DefaultTransport as a default round tripper
-func RoundTripper(r http.RoundTripper) optSetter {
+func RoundTripper(r http.RoundTripper) OptSetter {
 	return func(f *Forwarder) error {
 		f.httpForwarder.roundTripper = r
 		return nil
@@ -46,7 +46,7 @@ func RoundTripper(r http.RoundTripper) optSetter {
 }
 
 // Rewriter defines a request rewriter for the HTTP forwarder
-func Rewriter(r ReqRewriter) optSetter {
+func Rewriter(r ReqRewriter) OptSetter {
 	return func(f *Forwarder) error {
 		f.httpForwarder.rewriter = r
 		return nil
@@ -55,7 +55,7 @@ func Rewriter(r ReqRewriter) optSetter {
 
 // PassHostHeader specifies if a client's Host header field should
 // be delegated
-func WebsocketTLSClientConfig(tcc *tls.Config) optSetter {
+func WebsocketTLSClientConfig(tcc *tls.Config) OptSetter {
 	return func(f *Forwarder) error {
 		f.httpForwarder.tlsClientConfig = tcc
 		return nil
@@ -63,7 +63,7 @@ func WebsocketTLSClientConfig(tcc *tls.Config) optSetter {
 }
 
 // ErrorHandler is a functional argument that sets error handler of the server
-func ErrorHandler(h utils.ErrorHandler) optSetter {
+func ErrorHandler(h utils.ErrorHandler) OptSetter {
 	return func(f *Forwarder) error {
 		f.errHandler = h
 		return nil
@@ -71,7 +71,7 @@ func ErrorHandler(h utils.ErrorHandler) optSetter {
 }
 
 // Stream specifies if HTTP responses should be streamed.
-func Stream(stream bool) optSetter {
+func Stream(stream bool) OptSetter {
 	return func(f *Forwarder) error {
 		f.stream = stream
 		return nil
@@ -81,28 +81,28 @@ func Stream(stream bool) optSetter {
 // Logger defines the logger the forwarder will use.
 //
 // It defaults to logrus.StandardLogger(), the global logger used by logrus.
-func Logger(l *log.Logger) optSetter {
+func Logger(l *log.Logger) OptSetter {
 	return func(f *Forwarder) error {
 		f.log = l
 		return nil
 	}
 }
 
-func StateListener(stateListener UrlForwardingStateListener) optSetter {
+func StateListener(stateListener UrlForwardingStateListener) OptSetter {
 	return func(f *Forwarder) error {
 		f.stateListener = stateListener
 		return nil
 	}
 }
 
-func ResponseModifier(responseModifier func(*http.Response) error) optSetter {
+func ResponseModifier(responseModifier func(*http.Response) error) OptSetter {
 	return func(f *Forwarder) error {
 		f.httpForwarder.modifyResponse = responseModifier
 		return nil
 	}
 }
 
-func StreamingFlushInterval(flushInterval time.Duration) optSetter {
+func StreamingFlushInterval(flushInterval time.Duration) OptSetter {
 	return func(f *Forwarder) error {
 		f.httpForwarder.flushInterval = flushInterval
 		return nil
@@ -163,7 +163,7 @@ const (
 type UrlForwardingStateListener func(*url.URL, int)
 
 // New creates an instance of Forwarder based on the provided list of configuration options
-func New(setters ...optSetter) (*Forwarder, error) {
+func New(setters ...OptSetter) (*Forwarder, error) {
 	f := &Forwarder{
 		httpForwarder:  &httpForwarder{log: log.StandardLogger()},
 		handlerContext: &handlerContext{},

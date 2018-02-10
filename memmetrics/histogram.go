@@ -17,7 +17,7 @@ type HDRHistogram struct {
 	// significant figures
 	sigfigs int
 
-	h *hdrhistogram.Histogram
+	histo *hdrhistogram.Histogram
 }
 
 func NewHDRHistogram(low, high int64, sigfigs int) (h *HDRHistogram, err error) {
@@ -30,17 +30,17 @@ func NewHDRHistogram(low, high int64, sigfigs int) (h *HDRHistogram, err error) 
 		low:     low,
 		high:    high,
 		sigfigs: sigfigs,
-		h:       hdrhistogram.New(low, high, sigfigs),
+		histo:   hdrhistogram.New(low, high, sigfigs),
 	}, nil
 }
 
-func (r *HDRHistogram) Export() *HDRHistogram {
+func (h *HDRHistogram) Export() *HDRHistogram {
 	var hist *hdrhistogram.Histogram = nil
-	if r.h != nil {
-		snapshot := r.h.Export()
+	if h.histo != nil {
+		snapshot := h.histo.Export()
 		hist = hdrhistogram.Import(snapshot)
 	}
-	return &HDRHistogram{low: r.low, high: r.high, sigfigs: r.sigfigs, h: hist}
+	return &HDRHistogram{low: h.low, high: h.high, sigfigs: h.sigfigs, histo: hist}
 }
 
 // Returns latency at quantile with microsecond precision
@@ -54,28 +54,28 @@ func (h *HDRHistogram) RecordLatencies(d time.Duration, n int64) error {
 }
 
 func (h *HDRHistogram) Reset() {
-	h.h.Reset()
+	h.histo.Reset()
 }
 
 func (h *HDRHistogram) ValueAtQuantile(q float64) int64 {
-	return h.h.ValueAtQuantile(q)
+	return h.histo.ValueAtQuantile(q)
 }
 
 func (h *HDRHistogram) RecordValues(v, n int64) error {
-	return h.h.RecordValues(v, n)
+	return h.histo.RecordValues(v, n)
 }
 
 func (h *HDRHistogram) Merge(other *HDRHistogram) error {
 	if other == nil {
 		return fmt.Errorf("other is nil")
 	}
-	h.h.Merge(other.h)
+	h.histo.Merge(other.histo)
 	return nil
 }
 
-type rhOptSetter func(r *RollingHDRHistogram) error
+type HistogramOptSetter func(r *RollingHDRHistogram) error
 
-func RollingClock(clock timetools.TimeProvider) rhOptSetter {
+func RollingClock(clock timetools.TimeProvider) HistogramOptSetter {
 	return func(r *RollingHDRHistogram) error {
 		r.clock = clock
 		return nil
@@ -96,7 +96,7 @@ type RollingHDRHistogram struct {
 	clock       timetools.TimeProvider
 }
 
-func NewRollingHDRHistogram(low, high int64, sigfigs int, period time.Duration, bucketCount int, options ...rhOptSetter) (*RollingHDRHistogram, error) {
+func NewRollingHDRHistogram(low, high int64, sigfigs int, period time.Duration, bucketCount int, options ...HistogramOptSetter) (*RollingHDRHistogram, error) {
 	rh := &RollingHDRHistogram{
 		bucketCount: bucketCount,
 		period:      period,

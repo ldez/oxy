@@ -27,27 +27,27 @@ type RTMetrics struct {
 	clock      timetools.TimeProvider
 }
 
-type rrOptSetter func(r *RTMetrics) error
+type OptSetter func(r *RTMetrics) error
 
 type NewRTMetricsFn func() (*RTMetrics, error)
 type NewCounterFn func() (*RollingCounter, error)
 type NewRollingHistogramFn func() (*RollingHDRHistogram, error)
 
-func RTCounter(new NewCounterFn) rrOptSetter {
+func RTCounter(new NewCounterFn) OptSetter {
 	return func(r *RTMetrics) error {
 		r.newCounter = new
 		return nil
 	}
 }
 
-func RTHistogram(new NewRollingHistogramFn) rrOptSetter {
+func RTHistogram(new NewRollingHistogramFn) OptSetter {
 	return func(r *RTMetrics) error {
 		r.newHist = new
 		return nil
 	}
 }
 
-func RTClock(clock timetools.TimeProvider) rrOptSetter {
+func RTClock(clock timetools.TimeProvider) OptSetter {
 	return func(r *RTMetrics) error {
 		r.clock = clock
 		return nil
@@ -55,7 +55,7 @@ func RTClock(clock timetools.TimeProvider) rrOptSetter {
 }
 
 // NewRTMetrics returns new instance of metrics collector.
-func NewRTMetrics(settings ...rrOptSetter) (*RTMetrics, error) {
+func NewRTMetrics(settings ...OptSetter) (*RTMetrics, error) {
 	m := &RTMetrics{
 		statusCodes:     make(map[int]*RollingCounter),
 		statusCodesLock: sync.RWMutex{},
